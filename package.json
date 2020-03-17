@@ -1,0 +1,19 @@
+{
+  "name": "koa",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "dev:node": "node app.js"
+  },
+  "author": "zock",
+  "license": "MIT",
+  "devDependencies": {
+    "bcrypt": "^4.0.1",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^8.0.8",
+    "mongoose": "^5.9.4",
+    "nodemon": "^2.0.2"
+  }
+}

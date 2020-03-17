@@ -1,0 +1,23 @@
+@url = http://localhost:3000/api
+@type = Content-Type: application/json
+
+### 查询用户
+GET {{url}}/user/refer HTTP/1.1
+
+### 注册用户
+POST {{url}}/user/register HTTP/1.1
+{{type}}
+
+{
+    "username": "zhangsan",
+    "password": "mongoose"
+}
+
+### 登录
+POST {{url}}/user/login HTTP/1.1
+{{type}}
+
+{
+    "username": "zock2",
+    "password": "111222"
+}
