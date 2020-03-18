@@ -1,6 +1,42 @@
 # 用Node+MongoDB实现登录系统
 
-## 一、先来了解 MongoDB 简介
+## 一、结构目录
+
+```
+node_mongodb:
+│  .http						// 用来做接口测试，类似postman
+│  app.js						
+│  nodemon.json
+│  package.json
+│  yarn.lock
+│  
+├─libs
+│      db.js			// 来做数据库的连接(mongoose)
+│      
+├─middleware
+│      error.js		// 自定义中间件，收集错误信息（线上版本，不建议使用）
+│      
+├─models
+│      user.js		// 对数据库的一些操作
+│      
+├─routers
+│      user.js	 	// 接口定义
+│      
+└─src
+    │  
+    └─assets
+        │  
+        └─images
+                1.png
+                2.png
+                3.png
+                4.png
+                5.png
+```
+
+
+
+## 二、了解 MongoDB 简介
 
 MongoDB 是由C++语言编写的，是一个基于分布式文件存储的开源数据库系统。
 
@@ -857,7 +893,7 @@ col 集合中的数据如下：
 
 ---
 
-## 二、Node.js 连接 MongoDB
+## 三、Node.js 连接 MongoDB
 
 ### 1. 首先安装驱动
 
@@ -1265,3 +1301,191 @@ MongoClient.connect(url, { useNewUrlParser: true }, function(err, db) {
     });
 });
 ```
+
+## 四、本系统所使用的连接数据库方式
+
+1. `./libs/db.js`文件连接数据库
+
+```js
+// 连接数据库
+
+const mongoose = require('mongoose');
+// 连接mongodb数据库，如果没有数据库，则会自动创建
+mongoose.connect('mongodb://localhost:27017/user', {
+    useNewUrlParser: true,     // 新的解析器
+    useUnifiedTopology: true,  // 新的引擎
+    useCreateIndex: true,      // 定义索引
+    poolSize: 5                // 连接池
+});
+
+module.exports = mongoose;
+```
+
+
+
+2. `./models/user.js`声明mogoose中的Schema
+
+   [mogoose](http://www.mongoosejs.net/)
+
+```js
+// 对数据库的一些操作
+const mongoose = require('../libs/db');
+// const bcrypt = require('bcrypt');
+
+// 定义规则
+// var salt = bcrypt.genSaltSync(10);  //---散列10位长度，太长浪费性能没必要，过少的话，那么安全性又是个问题
+// var hash = bcrypt.hashSync(val, salt);  //---获得加密的 hash 密码
+
+const UserSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        unique: true
+    },
+    password: {
+        type: String,
+    }
+})
+
+// 使用规则
+const User = mongoose.model('User', UserSchema);
+
+module.exports = { User };
+```
+
+
+
+3. `./routers/user.js`中定义接口
+
+```js
+const Router = require('koa-router');
+const router = new Router();
+const { User } = require('../models/user');
+
+// 路由前缀
+router.prefix('/api/user');
+
+router.get('/', ctx => {
+    ctx.body = "用户主页";
+})
+
+// 查询用户
+router.get('/refer', async ctx => {
+    ctx.body = await User.find();
+});
+
+// 注册
+router.post('/register', async ctx => {
+    const { username, password } = ctx.request.body;
+    if(password.length < 6) {
+        // console.log('密码不能小于6位');
+        return ctx.body = {
+            retult: false,
+            errcode: 102,
+            errmsg: "密码不能小于6位"
+        }
+    } else {
+        const user = await User.create({
+            username,
+            password
+        })
+    }
+})
+
+// 登录
+router.post('/login', async ctx => {
+    // ctx.body = '登录'
+    const {username, password} = ctx.request.body;
+    // console.log(username, password);
+    // 登录逻辑先判断用户名是否存在，之后再比对密码
+    const user = await User.findOne({
+        username
+    })
+
+    // console.log(user);
+
+    // 用户名不存在
+    if(!user) {
+        return ctx.body = {
+            retult: false,
+            errcode: 100,
+            errmsg: "用户名不存在"
+        }
+    }
+
+    // 用户名存在，并去查询数据库作密码比对
+    const userPass = await User.findOne({
+        username,
+        password
+    });
+
+    // console.log(userPass);
+    if(!userPass) {
+        return ctx.body = {
+            retult: false,
+            errcode: 101,
+            errmsg: "用户名或密码错误"
+        }
+    } else {
+        return ctx.body = {
+            retult: true,
+            errcode: 110,
+            errmsg: "登录成功"
+        }
+    }
+})
+
+module.exports = router;
+```
+
+
+
+4. `app.js`中定义koa服务器
+
+```js
+const Koa = require('koa');
+const Router = require('koa-router');
+const users = require('./routers/user');
+const body = require('koa-bodyparser');
+const error = require('./middleware/error');
+
+const app = new Koa();
+app.use(body());
+app.use(error);
+
+const router = new Router();
+router.get('/', ctx => {
+    ctx.body = '主页';
+})
+
+app.use(router.routes());
+
+// 官方推荐，丰富响应头
+app.use(users.routes(), users.allowedMethods());
+app.listen(3000, () => {
+    console.log('http://localhost:3000');
+});
+```
+
+
+
+## 五、本项目中的一些过程图片
+
+
+
+![](https://github.com/zockbell/node_mongodb/blob/master/src/assets/images/1.png)
+
+
+
+![](https://github.com/zockbell/node_mongodb/blob/master/src/assets/images/2.png)
+
+
+
+![](https://github.com/zockbell/node_mongodb/blob/master/src/assets/images/3.png)
+
+
+
+![](https://github.com/zockbell/node_mongodb/blob/master/src/assets/images/4.png)
+
+
+
+![](https://github.com/zockbell/node_mongodb/blob/master/src/assets/images/5.png)
