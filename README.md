@@ -1,5 +1,15 @@
 # 用Node+MongoDB实现登录系统
 
+安装依赖
+```
+npm i install
+```
+
+启动项目
+```
+npm run dev
+```
+
 ## 一、结构目录
 
 ```
