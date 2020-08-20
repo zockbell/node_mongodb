@@ -9,7 +9,7 @@
   "author": "zock",
   "license": "MIT",
   "devDependencies": {
-    "bcrypt": "^4.0.1",
+    "bcrypt": "^5.0.0",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^8.0.8",
