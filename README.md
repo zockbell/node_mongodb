@@ -150,6 +150,11 @@ mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][
 
 MongoDB 创建数据库的语法格式如下：
 
+先用命令进到mongodb数据库中
+```mongodb
+mongo
+```
+
 ```mongodb
 use zock
 ```
